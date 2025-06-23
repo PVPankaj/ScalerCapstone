@@ -5,14 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection="profiles")
 @Schema(description = "Represents a user's profile on the job portal, including personal and professional information.")
 public class Profile {
+    @Id
     @Schema(description = "Unique identifier of the profile")
     private Long id;
 

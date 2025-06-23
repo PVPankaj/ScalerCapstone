@@ -10,10 +10,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "notification")
 @Schema(description = "Represents a notification sent to a user in the job portal system")
 public class Notification {
 	@Schema(description = "Unique identifier of the notification")

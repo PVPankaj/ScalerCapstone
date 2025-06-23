@@ -9,13 +9,18 @@ import com.scaler.capstone.jobportal.enums.JobStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "jobs")
 @Schema(description = "Represents a job listing with all relevant information for applicants")
 public class Job {
 
+    @Id
     @Schema(description = "Unique identifier of the job")
     private Long id;
 
