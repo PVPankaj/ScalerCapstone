@@ -19,8 +19,4 @@ public class NotificationResponseDTO {
     private String route;
     private NotificationStatus status;
     private LocalDateTime timestamp;
-
-    public Notification toEntity() {
-        return new Notification(this.id, this.userId, this.message, this.action, this.route, this.status, this.timestamp);
-    }
 }

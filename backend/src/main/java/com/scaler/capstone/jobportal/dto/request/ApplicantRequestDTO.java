@@ -46,8 +46,4 @@ public class ApplicantRequestDTO {
 
     @Future(message = "Interview time must be in the future")
     private LocalDateTime interviewTime;
-
-    public Applicant toEntity() {
-        return new Applicant(this.getApplicantId(), this.getName(), this.getEmail(), this.getPhone(), this.getWebsite(), this.getResume() != null ? Base64.getDecoder().decode(this.getResume()) : null, this.getCoverLetter(), this.getTimestamp(), this.getApplicationStatus(), this.interviewTime);
-    }
 }

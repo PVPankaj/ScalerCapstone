@@ -24,8 +24,4 @@ public class ApplicantResponseDTO {
 	private LocalDateTime timestamp;
 	private ApplicationStatus applicationStatus;
 	private LocalDateTime interviewTime;
-	
-	public Applicant toEntity() {
-		return new Applicant(this.getApplicantId(), this.getName(), this.getEmail(), this.getPhone(), this.getWebsite(), this.getResume()!=null?Base64.getDecoder().decode(this.getResume()):null, this.getCoverLetter(),this.getTimestamp(), this.getApplicationStatus(), this.interviewTime);
-	}
 }
