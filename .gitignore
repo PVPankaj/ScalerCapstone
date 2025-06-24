@@ -2,6 +2,7 @@
 # Compiled class file
 *.class
 
+
 # Log file
 *.log
 
@@ -130,3 +131,6 @@ sketch
 /backend/.gradle/8.14.2/checksums/sha1-checksums.bin
 /backend/.gradle/file-system.probe
 /backend/build/reports/problems/problems-report.html
+/jobportal-service/gradle/
+/jobportal-service/build/
+/jobportal-service/.gradle/

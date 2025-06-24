@@ -49,7 +49,7 @@ public interface JobMapper {
      * @param job the Job model
      * @return the JobResponseDTO
      */
-    @Mapping(target = "applicants", ignore = true)
+    //@Mapping(target = "applicants", ignore = true)
     JobResponseDTO toResponseDto(Job job);
 
     default byte[] map(String resume) {

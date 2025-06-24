@@ -108,7 +108,7 @@ public class JobServiceImpl implements JobService {
      * @throws JobPortalException if job not found or already applied
      */
     @Override
-    public void applyJob(Long id, ApplicantRequestDTO applicantDTO) throws AlreadyAppliedForJobException,ResourceNotFoundException {
+    public void applyJob(Long id, ApplicantRequestDTO applicantDTO) throws AlreadyAppliedForJobException, ResourceNotFoundException {
         Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("JOB_NOT_FOUND"));
         List<Applicant> applicants = job.getApplicants();
         if (applicants == null) applicants = new ArrayList<>();

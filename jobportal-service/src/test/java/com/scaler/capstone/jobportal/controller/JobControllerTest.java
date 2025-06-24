@@ -258,7 +258,7 @@ class JobControllerTest {
 
         Mockito.doNothing().when(jobService).changeAppStatus(application);
 
-        ResponseMessageDTO expectedResponse = new ResponseMessageDTO("Status Chhanged Successfully");
+        ResponseMessageDTO expectedResponse = new ResponseMessageDTO("Status Changed Successfully");
 
         mockMvc.perform(post("/jobs/changeAppStatus")
                         .contentType(MediaType.APPLICATION_JSON)
