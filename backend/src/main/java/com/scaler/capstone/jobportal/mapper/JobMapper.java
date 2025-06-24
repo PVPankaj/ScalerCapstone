@@ -4,12 +4,14 @@ import com.scaler.capstone.jobportal.dto.request.JobRequestDTO;
 import com.scaler.capstone.jobportal.dto.response.JobResponseDTO;
 import com.scaler.capstone.jobportal.model.Job;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 /**
  * Mapper interface for converting between Job model and DTOs using MapStruct.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface JobMapper {
 
     /**
@@ -47,5 +49,10 @@ public interface JobMapper {
      * @param job the Job model
      * @return the JobResponseDTO
      */
+    @Mapping(target = "applicants", ignore = true)
     JobResponseDTO toResponseDto(Job job);
+
+    default byte[] map(String resume) {
+        return resume != null ? java.util.Base64.getDecoder().decode(resume) : null;
+    }
 }
