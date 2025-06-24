@@ -5,7 +5,10 @@ import com.scaler.capstone.jobportal.dto.request.JobRequestDTO;
 import com.scaler.capstone.jobportal.dto.response.JobResponseDTO;
 import com.scaler.capstone.jobportal.dto.response.ResponseMessageDTO;
 import com.scaler.capstone.jobportal.enums.ApplicationStatus;
+import com.scaler.capstone.jobportal.exception.AlreadyAppliedForJobException;
+import com.scaler.capstone.jobportal.exception.InvalidApplicationStatusException;
 import com.scaler.capstone.jobportal.exception.JobPortalException;
+import com.scaler.capstone.jobportal.exception.ResourceNotFoundException;
 import com.scaler.capstone.jobportal.mapper.JobMapper;
 import com.scaler.capstone.jobportal.model.Application;
 import com.scaler.capstone.jobportal.service.JobService;
@@ -53,12 +56,12 @@ public class JobController {
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<JobResponseDTO> getJob(@PathVariable Long id) throws JobPortalException {
+    public ResponseEntity<JobResponseDTO> getJob(@PathVariable Long id) throws JobPortalException,ResourceNotFoundException {
         return new ResponseEntity<>(jobService.getJob(id), HttpStatus.OK);
     }
 
     @PostMapping("apply/{id}")
-    public ResponseEntity<ResponseMessageDTO> applyJob(@PathVariable Long id, @RequestBody ApplicantRequestDTO applicantDTO) throws JobPortalException {
+    public ResponseEntity<ResponseMessageDTO> applyJob(@PathVariable Long id, @RequestBody ApplicantRequestDTO applicantDTO) throws ResourceNotFoundException, AlreadyAppliedForJobException, JobPortalException {
         jobService.applyJob(id, applicantDTO);
         return new ResponseEntity<>(new ResponseMessageDTO("Applied Successfully"), HttpStatus.OK);
     }
@@ -74,7 +77,7 @@ public class JobController {
     }
 
     @PostMapping("/changeAppStatus")
-    public ResponseEntity<ResponseMessageDTO> changeAppStatus(@RequestBody Application application) throws JobPortalException {
+    public ResponseEntity<ResponseMessageDTO> changeAppStatus(@RequestBody Application application) throws JobPortalException, InvalidApplicationStatusException {
         jobService.changeAppStatus(application);
         return new ResponseEntity<>(new ResponseMessageDTO("Status Chhanged Successfully"), HttpStatus.OK);
     }

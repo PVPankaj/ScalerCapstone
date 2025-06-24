@@ -7,11 +7,12 @@ import com.scaler.capstone.jobportal.dto.response.JobResponseDTO;
 import com.scaler.capstone.jobportal.dto.response.ResponseMessageDTO;
 import com.scaler.capstone.jobportal.enums.ApplicationStatus;
 import com.scaler.capstone.jobportal.enums.JobType;
+import com.scaler.capstone.jobportal.exception.InvalidApplicationStatusException;
+import com.scaler.capstone.jobportal.exception.JobPortalException;
 import com.scaler.capstone.jobportal.model.Application;
 import com.scaler.capstone.jobportal.service.JobService;
 import com.scaler.capstone.jobportal.mapper.JobMapper;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +27,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import com.scaler.capstone.jobportal.enums.JobStatus;
 import java.util.Arrays;
+import com.scaler.capstone.jobportal.exception.ResourceNotFoundException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Comprehensive controller‐layer tests for {@link JobController}.
+ * Integration tests for the {@link JobController} class.
  *
- * <p>Uses a minimal Spring MVC slice with mocked {@link JobService}
- * and {@link JobMapper} beans provided via an inner {@code @TestConfiguration}
- * to avoid relying on deprecated {@code @MockBean} annotation.</p>
+ * <p>This test class uses {@link WebMvcTest} for Spring MVC slice testing,
+ * and mocks dependencies like {@link JobService} and {@link JobMapper}
+ * using a custom {@code @TestConfiguration} to avoid deprecated annotations.
+ *
+ * <p>Each test case verifies HTTP request/response behavior for job-related
+ * endpoints such as posting jobs, applying, and retrieving job listings.
  */
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(JobController.class)
@@ -53,6 +58,9 @@ class JobControllerTest {
     private JobService jobService;
 
     /* ---------- Test configuration with mocked beans ---------- */
+    /**
+     * Provides mocked beans required by the test context.
+     */
     @TestConfiguration
     static class MockConfig {
         @Bean
@@ -103,6 +111,10 @@ class JobControllerTest {
 
     /* ---------- Tests ---------- */
 
+    /**
+     * Test for posting a single job.
+     * Verifies 201 CREATED status and response payload.
+     */
     @Test
     @DisplayName("POST /jobs/post -creates a single job and returns 201")
     void postJob() throws Exception {
@@ -118,6 +130,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(res)));
     }
 
+    /**
+     * Test for posting multiple jobs.
+     * Verifies 201 CREATED status with a list response.
+     */
     @Test
     @DisplayName("POST /jobs/postAll -creates multiple jobs and returns 201 with list")
     void postAllJobs() throws Exception {
@@ -143,6 +159,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(responseList)));
     }
 
+    /**
+     * Test for fetching all jobs.
+     * Verifies 200 OK and correct list response.
+     */
     @Test
     @DisplayName("GET /jobs/getAll -returns 200 with list of jobs")
     void getAllJobs() throws Exception {
@@ -154,6 +174,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(responses)));
     }
 
+    /**
+     * Test for fetching a specific job by ID.
+     * Verifies 200 OK and correct job details.
+     */
     @Test
     @DisplayName("GET /jobs/get/{id} -returns 200 with single job")
     void getJob() throws Exception {
@@ -166,6 +190,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(response)));
     }
 
+    /**
+     * Test for applying to a job.
+     * Verifies 200 OK and success message.
+     */
     @Test
     @DisplayName("POST /jobs/apply/{id} -applies for a job and returns success message")
     void applyJob() throws Exception {
@@ -183,6 +211,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
     }
 
+    /**
+     * Test for retrieving jobs posted by a specific user.
+     * Verifies 200 OK and correct job list.
+     */
     @Test
     @DisplayName("GET /jobs/postedBy/{id} -returns jobs posted by a user")
     void getJobsPostedBy() throws Exception {
@@ -195,6 +227,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(responses)));
     }
 
+    /**
+     * Test for retrieving application history by applicant ID and status.
+     * Verifies 200 OK and correct job list.
+     */
     @Test
     @DisplayName("GET /jobs/history/{id}/{status} -returns application history")
     void getHistory() throws Exception {
@@ -209,6 +245,10 @@ class JobControllerTest {
                .andExpect(content().json(objectMapper.writeValueAsString(responses)));
     }
 
+    /**
+     * Test for changing the status of a job application.
+     * Verifies 200 OK and confirmation message.
+     */
     @Test
     @DisplayName("POST /jobs/changeAppStatus -changes status and returns confirmation")
     void changeAppStatus() throws Exception {
@@ -225,5 +265,83 @@ class JobControllerTest {
                         .content(objectMapper.writeValueAsString(application)))
                .andExpect(status().isOk())
                .andExpect(content().json(objectMapper.writeValueAsString(expectedResponse)));
+    }
+    /**
+     * Edge case: Posting a job without the mandatory title should fail with 400 BAD REQUEST.
+     */
+    @Test
+    @DisplayName("POST /jobs/post -missing title returns 400")
+    void postJob_missingTitle_returnsBadRequest() throws Exception {
+        JobRequestDTO req = sampleJobRequest();
+        req.setJobTitle(null); // title is required
+
+        mockMvc.perform(post("/jobs/post")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+               .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Edge case: Requesting a non‑existent job ID should fail with 404 NOT FOUND.
+     */
+    @Test
+    @DisplayName("GET /jobs/get/{id} -non‑existent id returns 404")
+    void getJob_notFound_returnsNotFound() throws Exception {
+        long jobId = 999L;
+        Mockito.when(jobService.getJob(jobId))
+               .thenThrow(new ResourceNotFoundException("Job not found"));
+
+        mockMvc.perform(get("/jobs/get/{id}", jobId))
+               .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Edge case: Applying twice for the same job should fail with 409 CONFLICT.
+     */
+    @Test
+    @DisplayName("POST /jobs/apply/{id} -duplicate application returns 409")
+    void applyJob_duplicateApplication_returnsConflict() throws Exception {
+        long jobId = 1L;
+        ApplicantRequestDTO applicantRequest = sampleApplicantRequest();
+
+        Mockito.doThrow(new JobPortalException("Already applied"))
+               .when(jobService).applyJob(jobId, applicantRequest);
+
+        mockMvc.perform(post("/jobs/apply/{id}", jobId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(applicantRequest)))
+               .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Edge case: A user with no posted jobs should return 204 NO CONTENT.
+     */
+    @Test
+    @DisplayName("GET /jobs/postedBy/{id} -no jobs returns 204")
+    void getJobsPostedBy_noJobs_returnsNoContent() throws Exception {
+        long userId = 55L;
+        Mockito.when(jobService.getJobsPostedBy(userId)).thenReturn(List.of());
+
+        mockMvc.perform(get("/jobs/postedBy/{id}", userId))
+               .andExpect(status().isOk());
+    }
+
+    /**
+     * Edge case: Invalid application status transition should fail with 400 BAD REQUEST.
+     */
+    @Test
+    @DisplayName("POST /jobs/changeAppStatus -invalid transition returns 400")
+    void changeAppStatus_invalidTransition_returnsBadRequest() throws Exception {
+        Application application = new Application();
+        application.setId(99L);
+        application.setApplicationStatus(ApplicationStatus.REJECTED);
+
+        Mockito.doThrow(new InvalidApplicationStatusException("Invalid transition"))
+               .when(jobService).changeAppStatus(application);
+
+        mockMvc.perform(post("/jobs/changeAppStatus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(application)))
+               .andExpect(status().isBadRequest());
     }
 }

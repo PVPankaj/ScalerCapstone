@@ -6,7 +6,10 @@ import com.scaler.capstone.jobportal.dto.request.NotificationRequestDTO;
 import com.scaler.capstone.jobportal.dto.response.JobResponseDTO;
 import com.scaler.capstone.jobportal.enums.ApplicationStatus;
 import com.scaler.capstone.jobportal.enums.JobStatus;
+import com.scaler.capstone.jobportal.exception.AlreadyAppliedForJobException;
+import com.scaler.capstone.jobportal.exception.InvalidApplicationStatusException;
 import com.scaler.capstone.jobportal.exception.JobPortalException;
+import com.scaler.capstone.jobportal.exception.ResourceNotFoundException;
 import com.scaler.capstone.jobportal.mapper.ApplicantMapper;
 import com.scaler.capstone.jobportal.mapper.JobMapper;
 import com.scaler.capstone.jobportal.model.Applicant;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 
@@ -91,8 +95,8 @@ public class JobServiceImpl implements JobService {
      * @throws JobPortalException if job is not found
      */
     @Override
-    public JobResponseDTO getJob(Long id) throws JobPortalException {
-        Job job = jobRepository.findById(id).orElseThrow(() -> new JobPortalException("JOB_NOT_FOUND"));
+    public JobResponseDTO getJob(Long id) throws JobPortalException, ResourceNotFoundException {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("JOB_NOT_FOUND"));
         return jobMapper.toResponseDto(job);
     }
 
@@ -104,12 +108,12 @@ public class JobServiceImpl implements JobService {
      * @throws JobPortalException if job not found or already applied
      */
     @Override
-    public void applyJob(Long id, ApplicantRequestDTO applicantDTO) throws JobPortalException {
-        Job job = jobRepository.findById(id).orElseThrow(() -> new JobPortalException("JOB_NOT_FOUND"));
+    public void applyJob(Long id, ApplicantRequestDTO applicantDTO) throws AlreadyAppliedForJobException,ResourceNotFoundException {
+        Job job = jobRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("JOB_NOT_FOUND"));
         List<Applicant> applicants = job.getApplicants();
         if (applicants == null) applicants = new ArrayList<>();
         if (applicants.stream().filter((x) -> x.getApplicantId() == applicantDTO.getApplicantId()).toList().size() > 0)
-            throw new JobPortalException("JOB_APPLIED_ALREADY");
+            throw new AlreadyAppliedForJobException("JOB_APPLIED_ALREADY");
         applicantDTO.setApplicationStatus(ApplicationStatus.APPLIED);
         applicants.add(applicantMapper.toModel(applicantDTO));
         job.setApplicants(applicants);
@@ -150,7 +154,14 @@ public class JobServiceImpl implements JobService {
      * @throws JobPortalException if job not found
      */
     @Override
-    public void changeAppStatus(Application application) throws JobPortalException {
+    public void changeAppStatus(Application application) throws JobPortalException, InvalidApplicationStatusException {
+        if (application.getApplicationStatus() == null ||
+                (!EnumSet.allOf(ApplicationStatus.class).contains(application.getApplicationStatus()))) {
+            throw new InvalidApplicationStatusException("Invalid application status: " + application.getApplicationStatus());
+        }
+        if (application.getApplicationStatus() == null) {
+            throw new InvalidApplicationStatusException("Application status cannot be null.");
+        }
         Job job = jobRepository.findById(application.getId()).orElseThrow(() -> new JobPortalException("JOB_NOT_FOUND"));
         List<Applicant> apps = job.getApplicants().stream().map((x) -> {
             if (application.getApplicantId() == x.getApplicantId()) {
