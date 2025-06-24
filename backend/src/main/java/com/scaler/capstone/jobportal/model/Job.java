@@ -2,6 +2,8 @@ package com.scaler.capstone.jobportal.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.scaler.capstone.jobportal.enums.JobType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.scaler.capstone.jobportal.enums.JobStatus;
@@ -40,7 +42,7 @@ public class Job {
     private String experience;
 
     @Schema(description = "Type of job such as Full-time, Part-time, Contract")
-    private String jobType;
+    private JobType jobType;
 
     @Schema(description = "Job location")
     private String location;

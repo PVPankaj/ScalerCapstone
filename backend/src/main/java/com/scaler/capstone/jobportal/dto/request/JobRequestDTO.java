@@ -1,6 +1,7 @@
 package com.scaler.capstone.jobportal.dto.request;
 
 import com.scaler.capstone.jobportal.enums.JobStatus;
+import com.scaler.capstone.jobportal.enums.JobType;
 import com.scaler.capstone.jobportal.model.Job;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -33,8 +34,8 @@ public class JobRequestDTO {
     @NotBlank(message = "Experience is required")
     private String experience;
 
-    @NotBlank(message = "Job type is required")
-    private String jobType;
+    @NotNull(message = "Job type is required")
+    private JobType jobType;
 
     @NotBlank(message = "Location is required")
     private String location;
