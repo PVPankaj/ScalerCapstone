@@ -2,7 +2,6 @@ package com.scaler.capstone.jobportal.dto.request;
 
 
 import com.scaler.capstone.jobportal.enums.ApplicationStatus;
-import com.scaler.capstone.jobportal.model.Applicant;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
-import java.util.Base64;
 
 @Data
 @AllArgsConstructor
